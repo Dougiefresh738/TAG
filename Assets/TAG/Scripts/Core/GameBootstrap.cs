@@ -1,6 +1,4 @@
-using TAG.Content;
 using TAG.Save;
-using TAG.Services;
 using UnityEngine;
 
 namespace TAG.Core
@@ -15,9 +13,6 @@ namespace TAG.Core
         public PlayerSaveData SaveData { get; private set; }
         public SaveSystem SaveSystem { get; private set; }
 
-        private CloudSaveService cloudSave;
-        private AnalyticsService analytics;
-
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -28,37 +23,20 @@ namespace TAG.Core
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            cloudSave = GetComponent<CloudSaveService>();
-            analytics = GetComponent<AnalyticsService>();
             Application.targetFrameRate = prefer120Fps ? GameConstants.PremiumFrameRate : GameConstants.TargetFrameRate;
             QualitySettings.vSyncCount = 0;
-            if (catalog == null)
-            {
-                catalog = Resources.Load<GameDataCatalog>("TAG/GameDataCatalog") ?? RuntimeDefaultContent.Catalog();
-            }
             SaveSystem = new SaveSystem();
             SaveData = SaveSystem.Load();
-            cloudSave?.TryHydrate(SaveData);
-            analytics?.Track("bootstrap_ready");
         }
 
         private void OnApplicationPause(bool pauseStatus)
         {
-            if (pauseStatus)
-            {
-                SaveAndQueueCloudUpload();
-            }
+            if (pauseStatus) SaveSystem?.Save(SaveData);
         }
 
         private void OnApplicationQuit()
         {
-            SaveAndQueueCloudUpload();
-        }
-
-        private void SaveAndQueueCloudUpload()
-        {
             SaveSystem?.Save(SaveData);
-            cloudSave?.QueueUpload(SaveData);
         }
     }
 }

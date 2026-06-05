@@ -1,72 +1,56 @@
-# TAG — Native Android Unity Game
+# TAG — Native Android Unity Conversion
 
-TAG is now implemented as a **native Unity Android game project**. The browser prototype is only a reference file; the playable game, menus, systems, generated assets, Android build path, and runtime content are Unity/C#.
+This repository now contains a native Unity Android scaffold for **TAG**. The original HTML prototype remains as a gameplay reference only; the production direction is a 3D Unity mobile game with Android build support, C# systems, ScriptableObject-driven tuning, dedicated scenes, and mobile-first polish.
 
-## No manual Unity content work required
+## What changed
 
-You do **not** need to do the previous setup list manually. The project now creates it for you:
+- **No web app/PWA/canvas conversion.** Unity folders, Android project settings, C# gameplay systems, and an editor Android build command have been added.
+- **Creature-first character direction.** Launch roster data covers Forest Hopper, Tiny Leafling, Moss Fox, Stone Mole, Glow Bat, Jungle Panda, Crystal Beaver, and Golden Monkey.
+- **Progression and unlocks.** Map unlocks follow Level 1/10/20/30/40/50, difficulty unlocks at Level 15, and God Mode requires Level 50 plus completion/3-star mastery.
+- **Menu layering fix.** `ScreenManager` uses an explicit navigation stack and moves active screens to the top sibling, preventing How To Play from appearing behind map selection UI.
+- **Meta systems.** Save data includes XP, account level, achievements, daily/weekly challenges, battle pass, cosmetics, titles, badges, collection, and profile customization hooks.
+- **AAA mobile systems foundation.** Character controller, AI director, dynamic music, footstep surfaces, map definitions, haptics, 60/120 FPS targets, IL2CPP Android build configuration, and URP/Cinemachine/Input System dependencies are in place.
 
-- ScriptableObject `.asset` instances are generated automatically.
-- Creature prefabs are generated automatically and assigned to creature definitions.
-- Rooftop, Jungle, Mine, Night Rooftop, Temple Jungle, and Crystal Mine map prefabs are generated automatically.
-- NavMesh data assets are baked by the editor generator for every generated map.
-- AI difficulty profiles are generated for Easy, Normal, and God Mode baselines.
-- Commercial rendering/post-effect tuning assets are generated automatically.
-- Cosmetic reward, battle pass, analytics, accessibility, economy, cloud-save adapter, haptic, and mobile performance services are added to the bootstrap scene automatically.
-- Dedicated Bootstrap, MainMenu, Game, HowToPlay, Settings, and Profile scenes are generated automatically.
+## Unity version
 
-## One-command generation/build options
+Target Unity version: **2022.3.45f1 LTS**.
 
-Inside Unity, use either menu item:
+## Android build
 
-- `TAG > Generate Complete Game Content`
-- `TAG > Build > Android APK`
+Open the project in Unity and run:
 
-The Android build command calls the generator first, then configures package ID `com.tagstudio.tag`, min SDK 23, automatic target SDK resolution, IL2CPP, and ARMv7/ARM64 output.
+`TAG > Build > Android APK`
 
-For command-line CI/build machines with Unity installed, run:
+The build script configures Android package ID `com.tagstudio.tag`, min SDK 23, automatic target SDK resolution, IL2CPP, and ARMv7/ARM64 output.
 
-```bash
-Unity -batchmode -quit -projectPath . -executeMethod TAG.Editor.TAGContentGenerator.EnsureAllContent
-Unity -batchmode -quit -projectPath . -executeMethod TAG.Editor.AndroidBuild.BuildAndroidApk
-```
-
-## What the generator creates
-
-- **Playable menu:** Play, locked/unlocked map selection, character collection, battle pass rewards, and profile/settings/how-to-play navigation.
-- **Playable game:** generated map, generated player creature, generated rival taggers, camera follow, HUD, survival timer, keyboard/touch movement, sprint, jump, and dash.
-- **Creatures:** Forest Hopper, Tiny Leafling, Moss Fox, Stone Mole, Glow Bat, Jungle Panda, Crystal Beaver, and Golden Monkey with rarity, personality, skins, emotes, and generated prefabs.
-- **Maps:** Rooftop city chase, living jungle, underground mine, and three level-gated variants with props, lighting, themed materials, atmosphere hooks, and generated prefabs/NavMesh assets.
-- **Meta:** XP/account level, achievements, daily and weekly challenges, login rewards, battle pass, cosmetics, titles, badges, collection, and profile customization data.
-- **Mobile polish:** 60/120 FPS targeting, haptics, accessibility settings, analytics events, cloud-save adapter, ethical cosmetic economy, dynamic music scaffolding, footstep surfaces, camera shake, motion/depth-effect flags, and soft-shadow lighting.
-
-## Main implementation files
+## Folder structure
 
 ```text
-Assets/TAG/Editor/TAGContentGenerator.cs        # Generates assets, prefabs, maps, NavMesh data, scenes, rewards, rendering profile
-Assets/TAG/Editor/AndroidBuild.cs               # Regenerates content and builds Android APK
-Assets/TAG/Scripts/Runtime/RuntimeMenuScene.cs  # Native Unity menu, collection, map select, battle pass
-Assets/TAG/Scripts/Runtime/RuntimeGameScene.cs  # Playable 3D TAG scene builder and input/HUD
-Assets/TAG/Scripts/Content/ProceduralMapBuilder.cs
-Assets/TAG/Scripts/Content/ProceduralCreatureFactory.cs
-Assets/TAG/Scripts/Services/CloudSaveService.cs
-Assets/TAG/Scripts/Services/AnalyticsService.cs
-Assets/TAG/Scripts/Services/EconomyService.cs
-Assets/TAG/Scripts/Services/AccessibilitySettingsService.cs
+Assets/TAG/
+  Art/                  # Character, map, UI, particles, material asset folders
+  Audio/                # Music, SFX, voices, ambience folders
+  Editor/               # Android build automation
+  Scenes/               # Bootstrap, MainMenu, HowToPlay, Settings, Profile, Game
+  ScriptableObjects/    # Data/tuning assets and launch roster JSON
+  Scripts/
+    AI/                 # Director and enemy squad behavior
+    Audio/              # Dynamic music and surface footsteps
+    Characters/         # Creature definitions and controller
+    Core/               # Bootstrap, constants, catalog
+    Maps/               # Map definitions
+    Meta/               # Achievements, challenges, battle pass
+    Mobile/             # FPS and haptics configuration
+    Progression/        # Difficulty and unlock services
+    Save/               # JSON save model/system
+    UI/                 # Navigation and map selection views
 ```
 
-## Controls
+## Production next steps
 
-- Keyboard: WASD/arrow keys move, Shift sprint, Space jump, E or Left Ctrl dash.
-- Touch: first touch acts as a simple directional control for Android/mobile smoke testing.
-
-## Conflict-resolution status
-
-The conflicted project files keep the native Unity implementation and the automated content-generation path:
-
-- `Assets/TAG/Editor/AndroidBuild.cs` keeps the generator-first Android build and now ensures the APK output folder exists before building.
-- `Assets/TAG/Scripts/Core/GameBootstrap.cs` keeps generated catalog fallback, save loading, cloud-save hydration/upload, and analytics startup hooks.
-- `Packages/manifest.json` keeps the Unity packages needed for URP, Input System, Cinemachine, Addressables, Analytics, Mobile Notifications, TextMeshPro, Timeline, and AI Navigation.
-- `README.md` keeps the no-manual-Unity-work instructions and documents the one-command generation/build flow.
-
-Verification for this conflict pass checked that the repository has no unmerged paths and that these files contain no Git conflict markers.
+1. Open in Unity and let packages import.
+2. Create actual `.asset` instances from the ScriptableObject definitions.
+3. Replace placeholder scenes with authored 3D environments for Rooftop, Jungle, Mine, Night Rooftop, Temple Jungle, and Crystal Mine.
+4. Build character prefabs using the creature definitions, animator controllers, emote clips, skin variants, and portrait art.
+5. Bake NavMeshes for each map and tune `AIDifficultyProfile` assets per difficulty.
+6. Add URP renderer assets, post-processing volumes, shadows, motion/depth effects, and map-specific VFX.
+7. Wire Android cloud save, analytics events, ethical cosmetic economy, battle pass rewards, and accessibility settings.
