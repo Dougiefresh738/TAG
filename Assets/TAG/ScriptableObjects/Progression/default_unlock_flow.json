@@ -1,0 +1,16 @@
+{
+  "maps": [
+    { "id": "rooftop", "name": "Rooftop", "unlockLevel": 1 },
+    { "id": "jungle", "name": "Jungle", "unlockLevel": 10 },
+    { "id": "mine", "name": "Mine", "unlockLevel": 20 },
+    { "id": "night_rooftop", "name": "Night Rooftop", "unlockLevel": 30 },
+    { "id": "temple_jungle", "name": "Temple Jungle", "unlockLevel": 40 },
+    { "id": "crystal_mine", "name": "Crystal Mine", "unlockLevel": 50 }
+  ],
+  "difficultyUnlockLevel": 15,
+  "godMode": {
+    "unlockLevel": 50,
+    "requiresEveryMapCompleted": true,
+    "requiresThreeStarsOnAllDifficulties": true
+  }
+}
