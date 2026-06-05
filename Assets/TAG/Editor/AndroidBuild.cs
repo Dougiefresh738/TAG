@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
@@ -20,6 +21,7 @@ namespace TAG.Editor
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64 | AndroidArchitecture.ARMv7;
 
+            Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
             var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
             var report = BuildPipeline.BuildPlayer(scenes, OutputPath, BuildTarget.Android, BuildOptions.None);
             if (report.summary.result != BuildResult.Succeeded)

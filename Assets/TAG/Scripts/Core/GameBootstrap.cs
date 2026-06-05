@@ -15,6 +15,9 @@ namespace TAG.Core
         public PlayerSaveData SaveData { get; private set; }
         public SaveSystem SaveSystem { get; private set; }
 
+        private CloudSaveService cloudSave;
+        private AnalyticsService analytics;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -25,6 +28,8 @@ namespace TAG.Core
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            cloudSave = GetComponent<CloudSaveService>();
+            analytics = GetComponent<AnalyticsService>();
             Application.targetFrameRate = prefer120Fps ? GameConstants.PremiumFrameRate : GameConstants.TargetFrameRate;
             QualitySettings.vSyncCount = 0;
             if (catalog == null)
@@ -33,8 +38,8 @@ namespace TAG.Core
             }
             SaveSystem = new SaveSystem();
             SaveData = SaveSystem.Load();
-            GetComponent<CloudSaveService>()?.TryHydrate(SaveData);
-            GetComponent<AnalyticsService>()?.Track("bootstrap_ready");
+            cloudSave?.TryHydrate(SaveData);
+            analytics?.Track("bootstrap_ready");
         }
 
         private void OnApplicationPause(bool pauseStatus)
@@ -42,14 +47,14 @@ namespace TAG.Core
             if (pauseStatus)
             {
                 SaveSystem?.Save(SaveData);
-                GetComponent<CloudSaveService>()?.QueueUpload(SaveData);
+                cloudSave?.QueueUpload(SaveData);
             }
         }
 
         private void OnApplicationQuit()
         {
             SaveSystem?.Save(SaveData);
-            GetComponent<CloudSaveService>()?.QueueUpload(SaveData);
+            cloudSave?.QueueUpload(SaveData);
         }
     }
 }

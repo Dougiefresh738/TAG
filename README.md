@@ -59,3 +59,12 @@ Assets/TAG/Scripts/Services/AccessibilitySettingsService.cs
 
 - Keyboard: WASD/arrow keys move, Shift sprint, Space jump, E or Left Ctrl dash.
 - Touch: first touch acts as a simple directional control for Android/mobile smoke testing.
+
+## Conflict-resolution status
+
+The conflicted project files keep the native Unity implementation and the automated content-generation path:
+
+- `Assets/TAG/Editor/AndroidBuild.cs` keeps the generator-first Android build and now ensures the APK output folder exists before building.
+- `Assets/TAG/Scripts/Core/GameBootstrap.cs` keeps generated catalog fallback, save loading, cloud-save hydration/upload, and analytics startup hooks.
+- `Packages/manifest.json` keeps the Unity packages needed for URP, Input System, Cinemachine, Addressables, Analytics, Mobile Notifications, TextMeshPro, Timeline, and AI Navigation.
+- `README.md` keeps the no-manual-Unity-work instructions and documents the one-command generation/build flow.
