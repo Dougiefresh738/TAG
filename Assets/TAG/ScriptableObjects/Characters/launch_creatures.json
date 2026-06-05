@@ -1,0 +1,10 @@
+[
+  { "id": "forest_hopper", "name": "Forest Hopper", "rarity": "Common", "personality": "Bright, springy mascot with huge leaf ears and a moon-hop run." },
+  { "id": "tiny_leafling", "name": "Tiny Leafling", "rarity": "Common", "personality": "Shy seedling creature that cheers after every escape." },
+  { "id": "moss_fox", "name": "Moss Fox", "rarity": "Rare", "personality": "Clever trickster with mossy tail swishes and playful taunts." },
+  { "id": "stone_mole", "name": "Stone Mole", "rarity": "Rare", "personality": "Chunky tunnel buddy with crystal goggles and victory belly flops." },
+  { "id": "glow_bat", "name": "Glow Bat", "rarity": "Epic", "personality": "Neon cave flyer with expressive ears and light-trail emotes." },
+  { "id": "jungle_panda", "name": "Jungle Panda", "rarity": "Epic", "personality": "Round vine-swinging hero with snack-themed emotes." },
+  { "id": "crystal_beaver", "name": "Crystal Beaver", "rarity": "Legendary", "personality": "Builder mascot with gemstone teeth and hammer-tail victory pose." },
+  { "id": "golden_monkey", "name": "Golden Monkey", "rarity": "Mythic", "personality": "Flashy rooftop acrobat with crown markings and showboat flips." }
+]
