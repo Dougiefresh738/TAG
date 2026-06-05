@@ -68,3 +68,5 @@ The conflicted project files keep the native Unity implementation and the automa
 - `Assets/TAG/Scripts/Core/GameBootstrap.cs` keeps generated catalog fallback, save loading, cloud-save hydration/upload, and analytics startup hooks.
 - `Packages/manifest.json` keeps the Unity packages needed for URP, Input System, Cinemachine, Addressables, Analytics, Mobile Notifications, TextMeshPro, Timeline, and AI Navigation.
 - `README.md` keeps the no-manual-Unity-work instructions and documents the one-command generation/build flow.
+
+Verification for this conflict pass checked that the repository has no unmerged paths and that these files contain no Git conflict markers.

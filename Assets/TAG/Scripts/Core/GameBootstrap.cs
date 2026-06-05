@@ -46,12 +46,16 @@ namespace TAG.Core
         {
             if (pauseStatus)
             {
-                SaveSystem?.Save(SaveData);
-                cloudSave?.QueueUpload(SaveData);
+                SaveAndQueueCloudUpload();
             }
         }
 
         private void OnApplicationQuit()
+        {
+            SaveAndQueueCloudUpload();
+        }
+
+        private void SaveAndQueueCloudUpload()
         {
             SaveSystem?.Save(SaveData);
             cloudSave?.QueueUpload(SaveData);
