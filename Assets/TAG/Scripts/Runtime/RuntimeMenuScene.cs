@@ -2,6 +2,7 @@ using System.Linq;
 using TAG.Core;
 using TAG.Progression;
 using TAG.Save;
+using TAG.Services;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -21,6 +22,7 @@ namespace TAG.Runtime
             catalog = catalog != null ? catalog : GameBootstrap.Instance != null ? GameBootstrap.Instance.Catalog : Resources.Load<GameDataCatalog>("TAG/GameDataCatalog");
             catalog ??= TAG.Content.RuntimeDefaultContent.Catalog();
             save = GameBootstrap.Instance != null ? GameBootstrap.Instance.SaveData : new PlayerSaveData();
+            FindObjectOfType<AnalyticsService>()?.Track("main_menu_open");
             BuildMenu();
             ShowHome();
         }
@@ -88,6 +90,8 @@ namespace TAG.Runtime
         {
             Clear();
             header.text = "BATTLE PASS";
+            FindObjectOfType<AnalyticsService>()?.Track("battle_pass_open");
+            FindObjectOfType<EconomyService>()?.TryGrantBattlePassReward(save, "free_launch_badge", "premium_launch_skin");
             AddButton($"Season {save.battlePass.seasonNumber} • Tier {save.battlePass.tier} • XP {save.battlePass.seasonXp}", null);
             AddButton("Free and premium rewards are cosmetics only — never pay-to-win.", null);
             AddButton("BACK", ShowHome);

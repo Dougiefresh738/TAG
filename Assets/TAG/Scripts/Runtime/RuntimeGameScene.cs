@@ -4,6 +4,7 @@ using TAG.Characters;
 using TAG.Content;
 using TAG.Core;
 using TAG.Maps;
+using TAG.Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -46,12 +47,16 @@ namespace TAG.Runtime
         private void BuildLevel()
         {
             var map = catalog != null ? catalog.maps.FirstOrDefault(m => m.mapId == forcedMapId) ?? catalog.maps.FirstOrDefault() : null;
-            ProceduralMapBuilder.Build(map, palette);
+            if (map != null && map.sceneRootPrefab != null) Instantiate(map.sceneRootPrefab);
+            else ProceduralMapBuilder.Build(map, palette);
+
+            FindObjectOfType<AnalyticsService>()?.Track("match_start", new System.Collections.Generic.Dictionary<string, object> { { "map", map != null ? map.mapId : forcedMapId } });
 
             var creature = catalog != null ? catalog.creatures.FirstOrDefault() : null;
-            var playerGo = ProceduralCreatureFactory.CreateCreature(creature, palette, true);
+            var playerGo = creature != null && creature.playablePrefab != null ? Instantiate(creature.playablePrefab) : ProceduralCreatureFactory.CreateCreature(creature, palette, true);
+            playerGo.name = creature != null ? creature.displayName : "Forest Hopper";
             playerGo.transform.position = new Vector3(0f, 1f, -12f);
-            player = playerGo.GetComponent<CreatureController>();
+            player = playerGo.GetComponent<CreatureController>() ?? playerGo.AddComponent<CreatureController>();
 
             var director = new GameObject("AI Director").AddComponent<AIDirector>();
             SetPrivate(director, "player", playerGo.transform);

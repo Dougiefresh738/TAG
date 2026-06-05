@@ -1,54 +1,61 @@
 # TAG — Native Android Unity Game
 
-This repository is now a **native Unity Android game project** for **TAG**. The HTML prototype remains only as a historical gameplay reference; the game implementation lives in Unity/C# and builds as an Android APK.
+TAG is now implemented as a **native Unity Android game project**. The browser prototype is only a reference file; the playable game, menus, systems, generated assets, Android build path, and runtime content are Unity/C#.
 
-## Open it and play
+## No manual Unity content work required
 
-1. Open the repo with **Unity 2022.3.45f1 LTS**.
-2. The editor automatically generates the complete playable content the first time the project loads.
-3. Press Play from `Assets/TAG/Scenes/Bootstrap.unity`, or run `TAG > Generate Complete Game Content` if you want to regenerate everything.
-4. Build Android with `TAG > Build > Android APK`.
+You do **not** need to do the previous setup list manually. The project now creates it for you:
 
-The build command also regenerates the content before building, so you do not need to hand-create ScriptableObjects, materials, scenes, menus, characters, or maps.
+- ScriptableObject `.asset` instances are generated automatically.
+- Creature prefabs are generated automatically and assigned to creature definitions.
+- Rooftop, Jungle, Mine, Night Rooftop, Temple Jungle, and Crystal Mine map prefabs are generated automatically.
+- NavMesh data assets are baked by the editor generator for every generated map.
+- AI difficulty profiles are generated for Easy, Normal, and God Mode baselines.
+- Commercial rendering/post-effect tuning assets are generated automatically.
+- Cosmetic reward, battle pass, analytics, accessibility, economy, cloud-save adapter, haptic, and mobile performance services are added to the bootstrap scene automatically.
+- Dedicated Bootstrap, MainMenu, Game, HowToPlay, Settings, and Profile scenes are generated automatically.
 
-## What is created automatically
+## One-command generation/build options
 
-- **Playable Unity scenes:** Bootstrap, MainMenu, Game, HowToPlay, Settings, and Profile.
-- **A runtime menu:** Play, map selection, character collection, battle pass, profile/settings/how-to-play navigation.
-- **Playable 3D game scene:** camera follow, player creature, rival taggers, HUD, timer, keyboard/touch movement, sprint, jump, and dash.
-- **Procedural creature roster:** Forest Hopper, Tiny Leafling, Moss Fox, Stone Mole, Glow Bat, Jungle Panda, Crystal Beaver, and Golden Monkey.
-- **Procedural maps:** Rooftop, Jungle, Mine, Night Rooftop, Temple Jungle, and Crystal Mine with themed props, lighting, atmosphere hooks, and unlock levels.
-- **Generated assets:** ScriptableObject catalog, creature definitions, map definitions, difficulty definitions, AI profiles, URP-compatible materials, and runtime fallback content.
-- **Meta systems:** XP, account level, achievements, daily/weekly challenges, battle pass, login rewards, collection, cosmetics, titles, badges, and profile customization fields.
-- **Commercial mobile foundations:** 60/120 FPS targeting, haptics, Android IL2CPP build settings, URP/Input System/Cinemachine dependencies, dynamic music layers, footstep surface audio, and AI director pressure.
+Inside Unity, use either menu item:
 
-## Native Android build
+- `TAG > Generate Complete Game Content`
+- `TAG > Build > Android APK`
 
-Open Unity and run:
+The Android build command calls the generator first, then configures package ID `com.tagstudio.tag`, min SDK 23, automatic target SDK resolution, IL2CPP, and ARMv7/ARM64 output.
 
-`TAG > Build > Android APK`
+For command-line CI/build machines with Unity installed, run:
 
-The build script configures package ID `com.tagstudio.tag`, min SDK 23, automatic target SDK resolution, IL2CPP, and ARMv7/ARM64 output.
+```bash
+Unity -batchmode -quit -projectPath . -executeMethod TAG.Editor.TAGContentGenerator.EnsureAllContent
+Unity -batchmode -quit -projectPath . -executeMethod TAG.Editor.AndroidBuild.BuildAndroidApk
+```
+
+## What the generator creates
+
+- **Playable menu:** Play, locked/unlocked map selection, character collection, battle pass rewards, and profile/settings/how-to-play navigation.
+- **Playable game:** generated map, generated player creature, generated rival taggers, camera follow, HUD, survival timer, keyboard/touch movement, sprint, jump, and dash.
+- **Creatures:** Forest Hopper, Tiny Leafling, Moss Fox, Stone Mole, Glow Bat, Jungle Panda, Crystal Beaver, and Golden Monkey with rarity, personality, skins, emotes, and generated prefabs.
+- **Maps:** Rooftop city chase, living jungle, underground mine, and three level-gated variants with props, lighting, themed materials, atmosphere hooks, and generated prefabs/NavMesh assets.
+- **Meta:** XP/account level, achievements, daily and weekly challenges, login rewards, battle pass, cosmetics, titles, badges, collection, and profile customization data.
+- **Mobile polish:** 60/120 FPS targeting, haptics, accessibility settings, analytics events, cloud-save adapter, ethical cosmetic economy, dynamic music scaffolding, footstep surfaces, camera shake, motion/depth-effect flags, and soft-shadow lighting.
 
 ## Main implementation files
 
 ```text
-Assets/TAG/Editor/TAGContentGenerator.cs        # Automatically creates the playable game content
+Assets/TAG/Editor/TAGContentGenerator.cs        # Generates assets, prefabs, maps, NavMesh data, scenes, rewards, rendering profile
 Assets/TAG/Editor/AndroidBuild.cs               # Regenerates content and builds Android APK
 Assets/TAG/Scripts/Runtime/RuntimeMenuScene.cs  # Native Unity menu, collection, map select, battle pass
 Assets/TAG/Scripts/Runtime/RuntimeGameScene.cs  # Playable 3D TAG scene builder and input/HUD
 Assets/TAG/Scripts/Content/ProceduralMapBuilder.cs
 Assets/TAG/Scripts/Content/ProceduralCreatureFactory.cs
-Assets/TAG/Scripts/Content/RuntimeDefaultContent.cs
-Assets/TAG/Scripts/Save/PlayerSaveData.cs
-Assets/TAG/Scripts/Progression/UnlockService.cs
+Assets/TAG/Scripts/Services/CloudSaveService.cs
+Assets/TAG/Scripts/Services/AnalyticsService.cs
+Assets/TAG/Scripts/Services/EconomyService.cs
+Assets/TAG/Scripts/Services/AccessibilitySettingsService.cs
 ```
 
 ## Controls
 
 - Keyboard: WASD/arrow keys move, Shift sprint, Space jump, E or Left Ctrl dash.
-- Touch: first touch acts as a simple directional control for mobile smoke testing.
-
-## Production note
-
-This is a complete native Unity implementation with generated playable content and systems. It does not pretend to replace years of hand-authored AAA art, animation, audio, QA, and device optimization, but it removes the manual Unity setup burden by generating the scenes, assets, roster, maps, menu, save/progression, AI, audio scaffolding, and Android build path directly in the project.
+- Touch: first touch acts as a simple directional control for Android/mobile smoke testing.

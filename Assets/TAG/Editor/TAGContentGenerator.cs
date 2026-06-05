@@ -4,12 +4,16 @@ using TAG.AI;
 using TAG.Characters;
 using TAG.Content;
 using TAG.Core;
+using TAG.Effects;
 using TAG.Maps;
+using TAG.Meta;
 using TAG.Progression;
 using TAG.Runtime;
+using TAG.Services;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 namespace TAG.Editor
@@ -37,8 +41,12 @@ namespace TAG.Editor
             EnsureFolders();
             var palette = CreatePalette();
             var catalog = CreateCatalog();
+            CreateCreaturePrefabs(catalog, palette);
+            CreateMapPrefabsAndNavigation(catalog, palette);
             CreateAiProfiles();
-            CreateRuntimeScenes(catalog, palette);
+            var renderingProfile = CreateRenderingProfile();
+            CreateRewardCatalog();
+            CreateRuntimeScenes(catalog, palette, renderingProfile);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
@@ -53,6 +61,12 @@ namespace TAG.Editor
             CreateFolder(GeneratedRoot, "Difficulties");
             CreateFolder(GeneratedRoot, "AI");
             CreateFolder(GeneratedRoot, "Materials");
+            CreateFolder(GeneratedRoot, "Prefabs");
+            CreateFolder(GeneratedRoot + "/Prefabs", "Creatures");
+            CreateFolder(GeneratedRoot + "/Prefabs", "Maps");
+            CreateFolder(GeneratedRoot, "NavMesh");
+            CreateFolder(GeneratedRoot, "Rendering");
+            CreateFolder(GeneratedRoot, "Meta");
         }
 
         private static void CreateFolder(string parent, string child)
@@ -184,6 +198,45 @@ namespace TAG.Editor
             return asset;
         }
 
+        private static void CreateCreaturePrefabs(GameDataCatalog catalog, ProceduralMaterialPalette palette)
+        {
+            foreach (var creature in catalog.creatures)
+            {
+                var instance = ProceduralCreatureFactory.CreateCreature(creature, palette, true);
+                var prefabPath = $"{GeneratedRoot}/Prefabs/Creatures/{creature.creatureId}.prefab";
+                creature.playablePrefab = PrefabUtility.SaveAsPrefabAsset(instance, prefabPath);
+                Object.DestroyImmediate(instance);
+                EditorUtility.SetDirty(creature);
+            }
+        }
+
+        private static void CreateMapPrefabsAndNavigation(GameDataCatalog catalog, ProceduralMaterialPalette palette)
+        {
+            foreach (var map in catalog.maps)
+            {
+                var instance = ProceduralMapBuilder.Build(map, palette);
+                var prefabPath = $"{GeneratedRoot}/Prefabs/Maps/{map.mapId}.prefab";
+                map.sceneRootPrefab = PrefabUtility.SaveAsPrefabAsset(instance, prefabPath);
+                BakeNavMeshAsset(instance, map.mapId);
+                Object.DestroyImmediate(instance);
+                EditorUtility.SetDirty(map);
+            }
+        }
+
+        private static void BakeNavMeshAsset(GameObject mapRoot, string mapId)
+        {
+            var sources = new List<NavMeshBuildSource>();
+            var markups = new List<NavMeshBuildMarkup>();
+            NavMeshBuilder.CollectSources(mapRoot.transform, ~0, NavMeshCollectGeometry.RenderMeshes, 0, markups, sources);
+            var bounds = new Bounds(Vector3.zero, new Vector3(80f, 30f, 80f));
+            var navData = NavMeshBuilder.BuildNavMeshData(NavMesh.GetSettingsByID(0), sources, bounds, Vector3.zero, Quaternion.identity);
+            if (navData == null) return;
+            var path = $"{GeneratedRoot}/NavMesh/{mapId}_NavMesh.asset";
+            var old = AssetDatabase.LoadAssetAtPath<NavMeshData>(path);
+            if (old != null) AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(navData, path);
+        }
+
         private static void CreateAiProfiles()
         {
             Profile("Easy", 3.5f, 5.5f, 16f, 0.55f, 0.2f, false);
@@ -206,7 +259,39 @@ namespace TAG.Editor
             EditorUtility.SetDirty(asset);
         }
 
-        private static void CreateRuntimeScenes(GameDataCatalog catalog, ProceduralMaterialPalette palette)
+        private static CommercialRenderingProfile CreateRenderingProfile()
+        {
+            var path = ResourceRoot + "/CommercialRenderingProfile.asset";
+            var profile = AssetDatabase.LoadAssetAtPath<CommercialRenderingProfile>(path) ?? ScriptableObject.CreateInstance<CommercialRenderingProfile>();
+            profile.dynamicLighting = true;
+            profile.softShadows = true;
+            profile.cameraShake = true;
+            profile.motionBlur = true;
+            profile.depthOfField = true;
+            profile.mapParticles = true;
+            profile.highQualityShaders = true;
+            profile.targetFps = 60;
+            profile.premiumFps = 120;
+            if (AssetDatabase.GetAssetPath(profile) == string.Empty) AssetDatabase.CreateAsset(profile, path);
+            EditorUtility.SetDirty(profile);
+            return profile;
+        }
+
+        private static CosmeticRewardCatalog CreateRewardCatalog()
+        {
+            var path = ResourceRoot + "/CosmeticRewardCatalog.asset";
+            var catalog = AssetDatabase.LoadAssetAtPath<CosmeticRewardCatalog>(path) ?? ScriptableObject.CreateInstance<CosmeticRewardCatalog>();
+            catalog.skinRewardIds = new List<string> { "forest_hopper_sunset", "moss_fox_jungle", "glow_bat_neon", "crystal_beaver_prismatic", "golden_monkey_royal" };
+            catalog.emoteRewardIds = new List<string> { "wave", "laugh", "taunt", "victory_flip", "sleepy_idle" };
+            catalog.titleRewardIds = new List<string> { "Rooftop Rookie", "Jungle Jumper", "Mine Master", "God Mode Survivor" };
+            catalog.badgeRewardIds = new List<string> { "daily_streak_7", "weekly_champion", "three_star_all", "founder" };
+            catalog.loginRewardIds = new List<string> { "day_1_coins", "day_2_emote", "day_3_skin", "day_7_legendary_badge" };
+            if (AssetDatabase.GetAssetPath(catalog) == string.Empty) AssetDatabase.CreateAsset(catalog, path);
+            EditorUtility.SetDirty(catalog);
+            return catalog;
+        }
+
+        private static void CreateRuntimeScenes(GameDataCatalog catalog, ProceduralMaterialPalette palette, CommercialRenderingProfile renderingProfile)
         {
             BootstrapScene(catalog);
             MenuScene(catalog);
@@ -232,6 +317,12 @@ namespace TAG.Editor
             var bootstrap = go.AddComponent<GameBootstrap>();
             SetSerialized(bootstrap, "catalog", catalog);
             go.AddComponent<TAG.Mobile.MobilePlatformConfigurator>();
+            go.AddComponent<AccessibilitySettingsService>();
+            go.AddComponent<CloudSaveService>();
+            go.AddComponent<AnalyticsService>();
+            go.AddComponent<EconomyService>();
+            var bootstrapVfx = go.AddComponent<RuntimeVfxController>();
+            SetSerialized(bootstrapVfx, "profile", renderingProfile);
             go.AddComponent<BootstrapSceneLoader>();
             EditorSceneManager.SaveScene(scene, "Assets/TAG/Scenes/Bootstrap.unity");
         }
@@ -253,6 +344,8 @@ namespace TAG.Editor
             var game = go.AddComponent<RuntimeGameScene>();
             SetSerialized(game, "catalog", catalog);
             SetSerialized(game, "palette", palette);
+            var vfx = go.AddComponent<RuntimeVfxController>();
+            SetSerialized(vfx, "profile", renderingProfile);
             AddCameraAndLight();
             EditorSceneManager.SaveScene(scene, "Assets/TAG/Scenes/Game.unity");
         }

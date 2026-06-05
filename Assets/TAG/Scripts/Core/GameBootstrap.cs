@@ -1,5 +1,6 @@
 using TAG.Content;
 using TAG.Save;
+using TAG.Services;
 using UnityEngine;
 
 namespace TAG.Core
@@ -32,16 +33,23 @@ namespace TAG.Core
             }
             SaveSystem = new SaveSystem();
             SaveData = SaveSystem.Load();
+            GetComponent<CloudSaveService>()?.TryHydrate(SaveData);
+            GetComponent<AnalyticsService>()?.Track("bootstrap_ready");
         }
 
         private void OnApplicationPause(bool pauseStatus)
         {
-            if (pauseStatus) SaveSystem?.Save(SaveData);
+            if (pauseStatus)
+            {
+                SaveSystem?.Save(SaveData);
+                GetComponent<CloudSaveService>()?.QueueUpload(SaveData);
+            }
         }
 
         private void OnApplicationQuit()
         {
             SaveSystem?.Save(SaveData);
+            GetComponent<CloudSaveService>()?.QueueUpload(SaveData);
         }
     }
 }
